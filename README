@@ -1,0 +1,6 @@
+Coding challenge done for a company ~June 2013.
+
+The task was to create a ListView to display 10 images from Flickr, using the Flickr photo search API, with a search term entered by the user.
+The ListView cell will display a thumbnail of the image, and the description pulled from the data.
+
+Simply tapping on a cell will save the photo to the phone's internal storage.
