@@ -12,8 +12,6 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
-import com.kwong.ccodingchallenge.R;
-
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.graphics.Bitmap;
@@ -34,8 +32,8 @@ public class MainActivity extends Activity {
 	ArrayList<ImageDetails> images = new ArrayList<ImageDetails>();
 
 	private final String API_KEY = "7bed88e81a4fa3ba04f750ebbf36fd4a";
-	private final String BEGINNING_OF_URL = 
-			"http://api.flickr.com/services/rest/?method=flickr.photos.search&api_key=";
+	private final String BEGINNING_OF_URL =
+			"https://api.flickr.com/services/rest/?method=flickr.photos.search&api_key=";
 	private final String MIDDLE_OF_URL = "&text=";
 	private final String END_OF_URL = "&per_page=10&format=json";
 
@@ -66,6 +64,7 @@ public class MainActivity extends Activity {
 
 		searchButton = (Button) findViewById(R.id.button_search);
 		searchButton.setOnClickListener(new View.OnClickListener() {
+			@Override
 			public void onClick(View v) {
 				images.clear();
 				new getJSONData().execute(searchTermEditText.getText().toString());
@@ -83,7 +82,7 @@ public class MainActivity extends Activity {
 
 	public class getJSONData extends AsyncTask<String, Void, Void> {
 		@Override
-		protected void onPreExecute() { 
+		protected void onPreExecute() {
 			loadingDialog = new ProgressDialog(MainActivity.this);
 			loadingDialog.setTitle("Processing...");
 			loadingDialog.setMessage("Please wait.");
@@ -95,7 +94,7 @@ public class MainActivity extends Activity {
 		@Override
 		protected Void doInBackground(String... searchTerm){
 			String htmlFriendlySearchTerm = searchTerm[0].replaceAll(" ", "%20");
-			String searchUrl = BEGINNING_OF_URL + API_KEY + MIDDLE_OF_URL + 
+			String searchUrl = BEGINNING_OF_URL + API_KEY + MIDDLE_OF_URL +
 					htmlFriendlySearchTerm + END_OF_URL;
 
 			HttpClient client = new  DefaultHttpClient();
@@ -113,7 +112,7 @@ public class MainActivity extends Activity {
 			JSONObject jsonObject = null;
 			JSONParser parser=new JSONParser();
 			Object obj;
-			
+
 			//remove "jsonFlickrApi( ... ) from JSON data
 			responseBody = responseBody.substring(14, responseBody.length()-1);
 			Log.v("responseBody", responseBody);
@@ -129,7 +128,7 @@ public class MainActivity extends Activity {
 			try {
 				JSONObject j = (JSONObject) jsonObject.get("photos");
 				JSONArray k = (JSONArray) j.get("photo");
-				arr = (JSONArray)k;
+				arr = k;
 			}catch(Exception ex){
 				Log.v("Get JSON Array","Exception: " + ex.getMessage());
 			}
@@ -140,12 +139,13 @@ public class MainActivity extends Activity {
 						((JSONObject)imgInJSONFormat).get("secret").toString(),
 						((JSONObject)imgInJSONFormat).get("server").toString(),
 						((JSONObject)imgInJSONFormat).get("farm").toString(),
-						((JSONObject)imgInJSONFormat).get("title").toString());				
+						((JSONObject)imgInJSONFormat).get("title").toString());
 				images.add(img);
 			}
 			return null;
 		}
 
+		@Override
 		public void onPostExecute(Void result){
 			loadingDialog.dismiss();
 			getThumbnailForEachImage();
@@ -167,17 +167,18 @@ public class MainActivity extends Activity {
 					+ ".staticflickr.com/" + currentLoadingImage.serverID
 					+ "/" + currentLoadingImage.id
 					+ "_" + currentLoadingImage.secret + "_m.jpg";
-			//_t for thumbnail 100 on longest side, _m for 240 on longest, _n for 320 
+			//_t for thumbnail 100 on longest side, _m for 240 on longest, _n for 320
 
 			Bitmap tImage = getBitmap(bitmapURL);
 			currentLoadingImage.setImageBitmap(tImage);
 			return null;
 		}
 
+		@Override
 		public void onPostExecute(Void result){
 			loadingDialog.dismiss();
 			if (listView.getAdapter() == null) {
-				imageAdapter = new ImageAdapter(MainActivity.this, 
+				imageAdapter = new ImageAdapter(MainActivity.this,
 						R.layout.listview_custom_row, images);
 				listView.setAdapter(imageAdapter);
 			} else {
@@ -190,7 +191,7 @@ public class MainActivity extends Activity {
 	public Bitmap getBitmap(String bitmapUrl) {
 		try {
 			URL url = new URL(bitmapUrl);
-			return BitmapFactory.decodeStream(url.openConnection().getInputStream()); 
+			return BitmapFactory.decodeStream(url.openConnection().getInputStream());
 		}
 		catch(Exception ex) {
 			return null;
@@ -228,7 +229,7 @@ public class MainActivity extends Activity {
 //			}
 
 			try {	//saves to internal
-				Images.Media.insertImage(getContentResolver(), 
+				Images.Media.insertImage(getContentResolver(),
 						fullSizedImage, imageDetail.id, imageDetail.imageDescription);
 				success = true;
 			} catch (Exception e) {
@@ -238,11 +239,12 @@ public class MainActivity extends Activity {
 			return null;
 		}
 
+		@Override
 		protected void onPostExecute(Void result) {
 			if (success) Toast.makeText(getBaseContext(), "Saved " +
 					imageDetail.imageDescription + " to album", Toast.LENGTH_SHORT).show();
 			else Toast.makeText(getBaseContext(), "Could not save image",
-					Toast.LENGTH_SHORT).show();	
+					Toast.LENGTH_SHORT).show();
 		}
 	}
 }
